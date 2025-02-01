@@ -1,0 +1,83 @@
+{{define "content"}}
+<div class="container">
+    <div class="row">
+        <!-- Left Column: Chat Section -->
+        <div class="col-md-6">
+            <h1 class="mt-5">Chat USA vs China</h1>
+            <hr>
+
+            <form method="POST" action="/">
+                <div class="mb-3">
+                    <label for="message" class="form-label">Enter your message:</label>
+                    <input type="text" class="form-control" id="message" name="message" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+
+            <div id="output" class="mt-5 p-3 border rounded">
+                <h4>Message History:</h4>
+                {{if .Messages}}
+                    <ul class="list-group">
+                        {{range .Messages}}
+                            <li class="list-group-item">
+                                <strong>{{.Time}}</strong>: {{.Text}}
+                            </li>
+                        {{end}}
+                    </ul>
+                {{else}}
+                    <span class="text-muted">No messages yet...</span>
+                {{end}}
+            </div>
+        </div>
+
+        <!-- Right Column: Map Section -->
+        <div class="col-md-6">
+            <h3 class="mt-5">Map Integration (OpenStreetMap)</h3>
+            <div id="map" style="width: 100%; height: 500px; border: 1px solid black;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Leaflet.js for OpenStreetMap -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var map = L.map('map').setView([51.0504, 13.7373], 12); // Center on Dresden
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Fetch main location
+        fetch('/static/locations.json')
+            .then(response => response.json())
+            .then(locations => {
+                locations.forEach(location => {
+                    L.marker([location.lat, location.lng]).addTo(map)
+                        .bindPopup(`<b>${location.name}</b>`);
+                });
+            })
+            .catch(error => console.error('Error loading main location:', error));
+
+        // Fetch restaurant locations and use red markers
+        fetch('/static/restaurants.json')
+            .then(response => response.json())
+            .then(restaurants => {
+                restaurants.forEach(restaurant => {
+                    L.marker([restaurant.lat, restaurant.lng], {
+                        icon: L.icon({
+                            iconUrl: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                            iconSize: [32, 32], // Adjust size if needed
+                            iconAnchor: [16, 32]
+                        })
+                    }).addTo(map)
+                        .bindPopup(`<b>${restaurant.name}</b>`);
+                });
+            })
+            .catch(error => console.error('Error loading restaurant locations:', error));
+    });
+</script>
+
+{{end}}
