@@ -1,27 +1,42 @@
 [
     {
         "name": "Carolaschlösschen",
+        "address": "Querallee 7, 01219 Dresden, Germany",
         "lat": 51.0415,
-        "lng": 13.7570
+        "lng": 13.7570,
+        "description": "A beautiful traditional restaurant serving German cuisine, located in the heart of Großer Garten.",
+        "link": "https://www.carolaschloesschen.de"
     },
     {
         "name": "Pulverturm an der Frauenkirche",
+        "address": "An der Frauenkirche 12, 01067 Dresden, Germany",
         "lat": 51.0519,
-        "lng": 13.7416
+        "lng": 13.7416,
+        "description": "A restaurant near the Frauenkirche offering exquisite dishes in a historic setting.",
+        "link": "http://www.pulverturm-dresden.de"
     },
     {
         "name": "Coselpalais Grand Cafe & Restaurant",
+        "address": "An der Frauenkirche 12, 01067 Dresden, Germany",
         "lat": 51.0517,
-        "lng": 13.7413
+        "lng": 13.7413,
+        "description": "A baroque-style café and restaurant offering Saxon cuisine and a variety of cakes, located next to the Frauenkirche.",
+        "link": "http://www.coselpalais-dresden.de"
     },
     {
         "name": "Ballhaus Watzke",
+        "address": "Kötzschenbroder Str. 1, 01139 Dresden, Germany",
         "lat": 51.0700,
-        "lng": 13.7140
+        "lng": 13.7140,
+        "description": "A historic brewery and beer garden offering traditional Saxon cuisine with a beautiful view of the Elbe River.",
+        "link": "https://www.watzke.de"
     },
     {
         "name": "Ayers Rock",
+        "address": "Münzgasse 8, 01067 Dresden, Germany",
         "lat": 51.0510,
-        "lng": 13.7410
+        "lng": 13.7410,
+        "description": "An Australian-themed restaurant serving international cuisine in a casual atmosphere.",
+        "link": "http://www.ayersrock-dresden.de"
     }
 ]

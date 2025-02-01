@@ -1,39 +1,18 @@
 {{define "content"}}
 <div class="container">
     <div class="row">
-        <!-- Left Column: Chat Section -->
-        <div class="col-md-6">
-            <h1 class="mt-5">Chat USA vs China</h1>
-            <hr>
-
-            <form method="POST" action="/">
-                <div class="mb-3">
-                    <label for="message" class="form-label">Enter your message:</label>
-                    <input type="text" class="form-control" id="message" name="message" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Send</button>
-            </form>
-
-            <div id="output" class="mt-5 p-3 border rounded">
-                <h4>Message History:</h4>
-                {{if .Messages}}
-                    <ul class="list-group">
-                        {{range .Messages}}
-                            <li class="list-group-item">
-                                <strong>{{.Time}}</strong>: {{.Text}}
-                            </li>
-                        {{end}}
-                    </ul>
-                {{else}}
-                    <span class="text-muted">No messages yet...</span>
-                {{end}}
-            </div>
-        </div>
-
-        <!-- Right Column: Map Section -->
+        <!-- Left Column: Map Section -->
         <div class="col-md-6">
             <h3 class="mt-5">Map Integration (OpenStreetMap)</h3>
-            <div id="map" style="width: 100%; height: 500px; border: 1px solid black;"></div>
+            <div id="map" style="width: 100%; height: 600px; border: 1px solid black;"></div>
+        </div>
+
+        <!-- Right Column: Restaurant List -->
+        <div class="col-md-6">
+            <h3 class="mt-5">Restaurants List</h3>
+            <div id="restaurant-list" class="mt-3">
+                <p>Loading restaurants...</p>
+            </div>
         </div>
     </div>
 </div>
@@ -61,22 +40,42 @@
             })
             .catch(error => console.error('Error loading main location:', error));
 
-        // Fetch restaurant locations and use red markers
+        // Fetch restaurant locations
         fetch('/static/restaurants.json')
             .then(response => response.json())
             .then(restaurants => {
+                let listContainer = document.getElementById("restaurant-list");
+                listContainer.innerHTML = ""; // Clear loading text
+
                 restaurants.forEach(restaurant => {
+                    // Add restaurant marker
                     L.marker([restaurant.lat, restaurant.lng], {
                         icon: L.icon({
                             iconUrl: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                            iconSize: [32, 32], // Adjust size if needed
+                            iconSize: [32, 32],
                             iconAnchor: [16, 32]
                         })
                     }).addTo(map)
-                        .bindPopup(`<b>${restaurant.name}</b>`);
+                        .bindPopup(`<b>${restaurant.name}</b><br>${restaurant.address}`);
+
+                    // Add restaurant info to the list
+                    let restaurantDiv = document.createElement("div");
+                    restaurantDiv.classList.add("mb-3", "p-2", "border", "rounded");
+                    restaurantDiv.innerHTML = `
+                        <h5>${restaurant.name}</h5>
+                        <p>${restaurant.address}</p>
+                        <a href="https://www.google.com/maps/search/?api=1&query=${restaurant.lat},${restaurant.lng}" 
+                           target="_blank" class="btn btn-sm btn-primary">
+                            View on Google Maps
+                        </a>
+                    `;
+                    listContainer.appendChild(restaurantDiv);
                 });
             })
-            .catch(error => console.error('Error loading restaurant locations:', error));
+            .catch(error => {
+                console.error('Error loading restaurant locations:', error);
+                document.getElementById("restaurant-list").innerHTML = "<p>Failed to load restaurant data.</p>";
+            });
     });
 </script>
 
