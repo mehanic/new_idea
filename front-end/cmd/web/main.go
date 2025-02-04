@@ -8,10 +8,10 @@ import (
 
 func renderTemplate(w http.ResponseWriter, tmpl string) {
 	tmplFiles := []string{
-		"./cmd/web/templates/base.layout.html",
-		"./cmd/web/templates/header.partial.html",
-		"./cmd/web/templates/footer.partial.html",
-		"./cmd/web/templates/test.page.html",
+		"./templates/base.layout.html",
+		"./templates/header.partial.html",
+		"./templates/footer.partial.html",
+		"./templates/test.page.html",
 	}
 
 	tmplParsed, err := template.ParseFiles(tmplFiles...)
@@ -32,7 +32,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/", handler)
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./cmd/web/static"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
 	log.Println("Server started on http://localhost:8080")
 	err := http.ListenAndServe(":8080", nil)
