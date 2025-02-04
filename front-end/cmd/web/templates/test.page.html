@@ -22,6 +22,7 @@
 
 <script>
     let map;
+
     function initMap() {
         map = new google.maps.Map(document.getElementById("map"), {
             center: { lat: 51.0504, lng: 13.7373 }, // Center around Dresden
@@ -36,8 +37,8 @@
                 listContainer.innerHTML = ""; // Clear loading text
 
                 restaurants.forEach(restaurant => {
-                    // Add restaurant marker
-                    new google.maps.Marker({
+                    // Create a marker
+                    let marker = new google.maps.Marker({
                         position: { lat: restaurant.lat, lng: restaurant.lng },
                         map: map,
                         icon: {
@@ -48,12 +49,37 @@
                         title: restaurant.name
                     });
 
+                    // Create a label with the restaurant name (white color, smaller size)
+                    let label = new google.maps.Marker({
+                        position: { lat: restaurant.lat, lng: restaurant.lng },
+                        map: map,
+                        icon: {
+                            url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+                                <svg xmlns="http://www.w3.org/2000/svg" width="150" height="30">
+                                    <text x="0" y="20" font-size="12" fill="white">${restaurant.name}</text>
+                                </svg>
+                            `)
+                        },
+                        visible: false // Initially hidden
+                    });
+
+                    // Show the name when mouse hovers over the marker
+                    marker.addListener("mouseover", () => {
+                        label.setVisible(true);
+                    });
+
+                    // Hide the name when mouse moves away from the marker
+                    marker.addListener("mouseout", () => {
+                        label.setVisible(false);
+                    });
+
                     // Add restaurant info to the list
                     let restaurantDiv = document.createElement("div");
                     restaurantDiv.classList.add("mb-3", "p-2", "border", "rounded");
                     restaurantDiv.innerHTML = `
                         <h5>${restaurant.name}</h5>
-                        <p>${restaurant.address}</p>
+                        <p><b>Address:</b> ${restaurant.address}</p>
+                        <p><b>Description:</b> ${restaurant.description || "No description available"}</p>
                         <a href="https://www.google.com/maps/search/?api=1&query=${restaurant.lat},${restaurant.lng}" 
                            target="_blank" class="btn btn-sm btn-primary">
                             View on Google Maps
@@ -68,5 +94,6 @@
             });
     }
 </script>
+
 
 {{end}}
