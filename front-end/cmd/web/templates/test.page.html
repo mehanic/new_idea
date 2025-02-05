@@ -28,11 +28,14 @@
         style: 'https://api.maptiler.com/maps/streets/style.json?key=sGsPEDsLUVNHhxHb7iej', // MapTiler style URL
         center: [13.7373, 51.0504], // Dresden center
         zoom: 12,
-        pixelRatio: 2,  // Increases map rendering quality on higher DPI screens
+        pixelRatio: 2,  // High DPI rendering
     });
 
     // Add zoom and rotation controls
     map.addControl(new maplibregl.NavigationControl());
+
+    let markers = {}; // Store markers
+    let labels = {};  // Store text labels
 
     // Fetch restaurant locations
     fetch('/static/restaurants.json')
@@ -42,36 +45,50 @@
             listContainer.innerHTML = ""; // Clear loading text
 
             restaurants.forEach(restaurant => {
-                // Create a MapLibre marker with a smaller size
+                // Create a MapLibre marker (Red marker for all restaurants)
                 let marker = new maplibregl.Marker({
                         color: "red",
-                        scale: 0.5  // This scales the marker to half its size
+                        scale: 0.5  
                     })
                     .setLngLat([restaurant.lng, restaurant.lat])
-                    .setPopup(new maplibregl.Popup().setHTML(`
-                        <div style="text-align: center; font-size: 14px;">
-                            <b>${restaurant.name}</b><br>
-                            📍 ${restaurant.address}<br>
-                            <a href="https://www.openstreetmap.org/?mlat=${restaurant.lat}&mlon=${restaurant.lng}#map=17/${restaurant.lat}/${restaurant.lng}" 
-                               target="_blank" class="btn btn-sm btn-primary" style="margin-top: 5px;">
-                                View on OpenStreetMap
-                            </a>
-                        </div>
-                    `))
                     .addTo(map);
+
+                markers[restaurant.name] = marker; // Store marker
 
                 // Add restaurant info to the list
                 let restaurantDiv = document.createElement("div");
-                restaurantDiv.classList.add("mb-3", "p-2", "border", "rounded");
+                restaurantDiv.classList.add("mb-3", "p-2", "border", "rounded", "clickable");
                 restaurantDiv.innerHTML = `
                     <h5>${restaurant.name}</h5>
                     <p><b>Address:</b> ${restaurant.address}</p>
                     <p><b>Description:</b> ${restaurant.description || "No description available"}</p>
-                    <a href="https://www.openstreetmap.org/?mlat=${restaurant.lat}&mlon=${restaurant.lng}#map=17/${restaurant.lat}/${restaurant.lng}" 
-                       target="_blank" class="btn btn-sm btn-primary">
-                        View on OpenStreetMap
-                    </a>
                 `;
+
+                // Handle click event to show restaurant name in a white table-like popup
+                restaurantDiv.addEventListener("click", function() {
+                    // Remove previous labels
+                    Object.values(labels).forEach(label => label.remove());
+                    labels = {};
+
+                    let label = new maplibregl.Popup({
+                            closeButton: false,
+                            closeOnClick: false,
+                            offset: [0, -30], // Moves the popup higher so it doesn't cover the marker
+                            className: "restaurant-popup"  // Custom class for styling
+                        })
+                        .setLngLat([restaurant.lng, restaurant.lat])
+                        .setHTML(`<div class="restaurant-label">${restaurant.name}</div>`)
+                        .addTo(map);
+
+                    labels[restaurant.name] = label;
+
+                    // Center the map on the selected restaurant
+                    map.flyTo({
+                        center: [restaurant.lng, restaurant.lat],
+                        zoom: 15
+                    });
+                });
+
                 listContainer.appendChild(restaurantDiv);
             });
         })
@@ -80,5 +97,34 @@
             document.getElementById("restaurant-list").innerHTML = "<p>Failed to load restaurant data.</p>";
         });
 </script>
+
+<style>
+/* Custom styling for the restaurant popup (white table-like box) */
+.restaurant-popup .maplibregl-popup-content {
+    background: white !important;
+    color: black;
+    font-weight: bold;
+    border-radius: 5px;
+    padding: 5px 10px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+/* Remove default MapLibre popup arrow */
+.restaurant-popup .maplibregl-popup-tip {
+    display: none;
+}
+
+/* Ensure popup text scales with name size */
+.restaurant-label {
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+</style>
 
 {{end}}
