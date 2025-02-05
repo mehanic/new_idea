@@ -3,8 +3,8 @@
     <div class="row">
         <!-- Left Column: Map Section -->
         <div class="col-md-6">
-            <h3 class="mt-5">Map Integration (Google Maps)</h3>
-            <div id="map" style="width: 100%; height: 600px; border: 1px solid black;"></div>
+            <h3 class="mt-5">Map Integration (MapLibre GL JS - OpenStreetMap)</h3>
+            <div id="map" style="width: 100%; height: 600px; border: 1px solid black; border-radius: 10px;"></div>
         </div>
 
         <!-- Right Column: Restaurant List -->
@@ -17,83 +17,68 @@
     </div>
 </div>
 
-<!-- Include Google Maps JavaScript API -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXWH_V5jrOUaB0m-z7vPMX2SBweGlIxR8&callback=initMap" async defer></script>
+<!-- Include MapLibre GL JS -->
+<link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 
 <script>
-    let map;
+    // Initialize MapLibre GL JS with a high-definition style (MapTiler)
+    let map = new maplibregl.Map({
+        container: 'map',
+        style: 'https://api.maptiler.com/maps/streets/style.json?key=sGsPEDsLUVNHhxHb7iej', // MapTiler style URL
+        center: [13.7373, 51.0504], // Dresden center
+        zoom: 12,
+        pixelRatio: 2,  // Increases map rendering quality on higher DPI screens
+    });
 
-    function initMap() {
-        map = new google.maps.Map(document.getElementById("map"), {
-            center: { lat: 51.0504, lng: 13.7373 }, // Center around Dresden
-            zoom: 12
-        });
+    // Add zoom and rotation controls
+    map.addControl(new maplibregl.NavigationControl());
 
-        // Fetch restaurant locations
-        fetch('/static/restaurants.json')
-            .then(response => response.json())
-            .then(restaurants => {
-                let listContainer = document.getElementById("restaurant-list");
-                listContainer.innerHTML = ""; // Clear loading text
+    // Fetch restaurant locations
+    fetch('/static/restaurants.json')
+        .then(response => response.json())
+        .then(restaurants => {
+            let listContainer = document.getElementById("restaurant-list");
+            listContainer.innerHTML = ""; // Clear loading text
 
-                restaurants.forEach(restaurant => {
-                    // Create a marker
-                    let marker = new google.maps.Marker({
-                        position: { lat: restaurant.lat, lng: restaurant.lng },
-                        map: map,
-                        icon: {
-                            url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                            size: new google.maps.Size(32, 32),
-                            anchor: new google.maps.Point(16, 32)
-                        },
-                        title: restaurant.name
-                    });
+            restaurants.forEach(restaurant => {
+                // Create a MapLibre marker with a smaller size
+                let marker = new maplibregl.Marker({
+                        color: "red",
+                        scale: 0.5  // This scales the marker to half its size
+                    })
+                    .setLngLat([restaurant.lng, restaurant.lat])
+                    .setPopup(new maplibregl.Popup().setHTML(`
+                        <div style="text-align: center; font-size: 14px;">
+                            <b>${restaurant.name}</b><br>
+                            📍 ${restaurant.address}<br>
+                            <a href="https://www.openstreetmap.org/?mlat=${restaurant.lat}&mlon=${restaurant.lng}#map=17/${restaurant.lat}/${restaurant.lng}" 
+                               target="_blank" class="btn btn-sm btn-primary" style="margin-top: 5px;">
+                                View on OpenStreetMap
+                            </a>
+                        </div>
+                    `))
+                    .addTo(map);
 
-                    // Create a label with the restaurant name (white color, smaller size)
-                    let label = new google.maps.Marker({
-                        position: { lat: restaurant.lat, lng: restaurant.lng },
-                        map: map,
-                        icon: {
-                            url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-                                <svg xmlns="http://www.w3.org/2000/svg" width="150" height="30">
-                                    <text x="0" y="20" font-size="12" fill="white">${restaurant.name}</text>
-                                </svg>
-                            `)
-                        },
-                        visible: false // Initially hidden
-                    });
-
-                    // Show the name when mouse hovers over the marker
-                    marker.addListener("mouseover", () => {
-                        label.setVisible(true);
-                    });
-
-                    // Hide the name when mouse moves away from the marker
-                    marker.addListener("mouseout", () => {
-                        label.setVisible(false);
-                    });
-
-                    // Add restaurant info to the list
-                    let restaurantDiv = document.createElement("div");
-                    restaurantDiv.classList.add("mb-3", "p-2", "border", "rounded");
-                    restaurantDiv.innerHTML = `
-                        <h5>${restaurant.name}</h5>
-                        <p><b>Address:</b> ${restaurant.address}</p>
-                        <p><b>Description:</b> ${restaurant.description || "No description available"}</p>
-                        <a href="https://www.google.com/maps/search/?api=1&query=${restaurant.lat},${restaurant.lng}" 
-                           target="_blank" class="btn btn-sm btn-primary">
-                            View on Google Maps
-                        </a>
-                    `;
-                    listContainer.appendChild(restaurantDiv);
-                });
-            })
-            .catch(error => {
-                console.error('Error loading restaurant locations:', error);
-                document.getElementById("restaurant-list").innerHTML = "<p>Failed to load restaurant data.</p>";
+                // Add restaurant info to the list
+                let restaurantDiv = document.createElement("div");
+                restaurantDiv.classList.add("mb-3", "p-2", "border", "rounded");
+                restaurantDiv.innerHTML = `
+                    <h5>${restaurant.name}</h5>
+                    <p><b>Address:</b> ${restaurant.address}</p>
+                    <p><b>Description:</b> ${restaurant.description || "No description available"}</p>
+                    <a href="https://www.openstreetmap.org/?mlat=${restaurant.lat}&mlon=${restaurant.lng}#map=17/${restaurant.lat}/${restaurant.lng}" 
+                       target="_blank" class="btn btn-sm btn-primary">
+                        View on OpenStreetMap
+                    </a>
+                `;
+                listContainer.appendChild(restaurantDiv);
             });
-    }
+        })
+        .catch(error => {
+            console.error('Error loading restaurant locations:', error);
+            document.getElementById("restaurant-list").innerHTML = "<p>Failed to load restaurant data.</p>";
+        });
 </script>
-
 
 {{end}}
